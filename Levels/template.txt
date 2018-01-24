@@ -65,3 +65,25 @@ Platform
 		(1, 0)
 	}
 }
+
+GameObject
+{
+	"Goal"
+	Transform
+	{
+		Translation(0, groundHeight)
+	}
+	Sprite
+	{
+		"Goal Sprite"
+		Mesh(goalMesh)
+		SpriteSource(goalSpriteSource)
+	}
+	Animation
+	{
+		FrameDur(0.25f)
+		IsLooping(true)
+	}
+	Physics
+	Collider
+	Behavior(BehaviorGoal(GameStateTable::GsLevel2))
