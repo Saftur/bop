@@ -1,0 +1,67 @@
+Mesh
+{
+	"Name"
+	HalfSize(x, y)
+	UV(u, v)
+}
+
+SpriteSource
+{
+	"Name"	
+	Dims(rows, cols)
+	Texture(sprite)
+}
+
+GameObject
+{
+	"Name"
+	Transform
+	{
+		Translation(x, y)
+		Scale(x, y)
+		Rotation(rot)
+		UIElement(t/f)
+	}
+	Sprite
+	{
+		"Name"
+		Alpha(value)
+		Frame(frame)
+		Mesh(name)
+		Mesh
+		{
+			HalfSize(x, y)
+			UV(u, v)
+		}
+		SpriteSource(name)
+		SpriteSource
+		{
+			Size(rows, cols)
+			Texture(sprite)
+		}
+	}
+	Animation
+	{
+		FrameDur(length)
+		IsLooping(t/f)
+	}
+	Physics
+	Collider
+	Behavior (name)
+}
+
+Platform
+{
+	Transform
+	{
+		Translation(x, y)
+		Scale(x, y)
+	}
+	Jump(height)
+	Speed(speed)
+	Vector
+	{
+		(0, 0)
+		(1, 0)
+	}
+}

@@ -178,6 +178,9 @@
     <ClCompile Include="Source\BehaviorGoal.cpp">
       <Filter>Game\Behaviors</Filter>
     </ClCompile>
+    <ClCompile Include="source\LevelManager.cpp">
+      <Filter>Engine\I/O</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\GameStateStub.h">
@@ -336,6 +339,9 @@
     </ClInclude>
     <ClInclude Include="Source\BehaviorGoal.h">
       <Filter>Game\Behaviors</Filter>
+    </ClInclude>
+    <ClInclude Include="source\LevelManager.h">
+      <Filter>Engine\I/O</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
