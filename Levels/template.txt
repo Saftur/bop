@@ -8,7 +8,7 @@ Mesh
 SpriteSource
 {
 	"Name"	
-	Dims(rows, cols)
+	Size(rows, cols)
 	Texture(sprite)
 }
 

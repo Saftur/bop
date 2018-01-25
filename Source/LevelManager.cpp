@@ -23,6 +23,9 @@ LevelManager& LevelManager::GetInstance()
 	return lm;
 }
 
+LevelManager::LevelManager() {}
+LevelManager::~LevelManager() {}
+
 void LevelManager::Init()
 {
 	Trace::GetInstance().GetStream() << "LevelManager: Init" << std::endl;
@@ -71,6 +74,7 @@ void LevelManager::Load(const char* levelName)
 {
 	std::string str = "Levels\\";
 	str.append(levelName);
+	str.append(".txt");
 	
 	Trace::GetInstance().GetStream() << "LevelManager: Load \"" << str << "\"" << std::endl;
 
@@ -80,27 +84,22 @@ void LevelManager::Load(const char* levelName)
 	while (std::getline(file, line))
 	{
 		// Replace all () with spaces.
-		if (line.find_first_of(" (") != std::string::npos)
+		if (line.find_first_of("(") != std::string::npos)
 		{
-			std::string tmp = line.substr(line.find_first_of("("), line.size());
+			std::string tmp = line.substr(line.find_first_of("(") + 1, line.size());
 			line = line.substr(0, line.find_first_of("("));
+			line.append(" ");
 			line.append(tmp);
 		}
-		else if(line.find_first_of("(") != std::string::npos)
-		{
-			std::replace(line.begin(), line.end(), '(', ' ');
-		}
 
-		if (line.find_first_of(") ") != std::string::npos)
+		if (line.find_first_of(")") != std::string::npos)
 		{
-			std::string tmp = line.substr(line.find_first_of(") "), line.size());
+			std::string tmp = line.substr(line.find_first_of(")") + 1, line.size());
 			line = line.substr(0, line.find_first_of(")"));
 			line.append(tmp);
 		}
-		else if (line.find_first_of(")") != std::string::npos)
-		{
-			std::replace(line.begin(), line.end(), ')', ' ');
-		}
+
+		line.erase(std::remove(line.begin(), line.end(), '\t'), line.end());
 
 		std::replace(line.begin(), line.end(), ',', ' ');
 
@@ -113,13 +112,15 @@ void LevelManager::Load(const char* levelName)
 
 void LevelManager::Update(float dt)
 {
+	UNREFERENCED_PARAMETER(dt);
+
 	Trace::GetInstance().GetStream() << "LevelManager: Update" << std::endl;
 
 	std::string word;
 	std::stringstream sstream;
 	LM_Parent type = NONE;
-	LM_Parent activeParent;
-	LM_Parent activeChild;
+	LM_Parent activeParent = NONE;
+	LM_Parent activeChild = NONE;
 	float x, y;
 
 	switch (stateCurr)
@@ -127,119 +128,311 @@ void LevelManager::Update(float dt)
 	case IDLE:
 		break;
 	case LOAD:
-		word = GetNextWord(contents, true);
-		
-		switch (strs[word])
+		if (contents == "")
 		{
-		case GameObject:
-			tmpGO = new TmpGO();
-			type = GO;
-			break;
-		case str2int("Mesh"):
-			if (GetNextWord(contents) != "{")
-				break;
-			tmpMesh = new TmpMesh();
-			type = MESH;
-			break;
-		case str2int("SpriteSource"):
-			if (GetNextWord(contents) != "{")
-				break;
-			tmpSpriteSrc = new TmpSpriteSrc();
-			type = SPRSRC;
-			break;
-		case str2int("Transform"):
-			tmpTransform = new TmpTransform();
-			type = TRANS;
-			break;
-		case str2int("Sprite"):
-			tmpSprite = new TmpSprite();
-			type = SPRITE;
-			break;
-		case str2int("Animation"):
-			tmpAnim = new TmpAnim();
-			type = ANIM;
-			break;
-		case str2int("Physics"):
-			tmpPhys = new TmpPhys();
-			type = PHYS;
-			break;
-		case str2int("Collider"):
-			tmpColl = new TmpColl();
-			type = COLL;
-			break;
-		case str2int("Behavior"):
-			tmpBehavior = new TmpBehavior();
-			type = BEHAV;
-			break;
-		case str2int("Platform"):
-			tmpPlatform = new TmpPlatform();
-			type = PLAT;
-		case str2int("{"):
-			depth++;
-			break;
-		case str2int("}"):
-			switch (depth)
-			{
-			case 1:
-				activeParent = p1;
-				activeChild = p2;
-				break;
-			case 2:
-				activeParent = p2;
-				activeChild = p3;
-				break;
-			}
+			Trace::GetInstance().GetStream() << "LevelManager: Starting creation..." << std::endl;
+			stateNext = CREATE;
+		}
 
-			switch (activeParent)
+		word = GetNextWord(contents, true);
+
+		if (strs.find(word) != strs.end())
+		{
+			switch (strs.at(word))
 			{
-			case GO:
-				switch (activeChild)
+			case GameObject:
+				tmpGO = new TmpGO();
+				type = GO;
+				break;
+			case Mesh:
+				if (GetNextWord(contents) != "{")
+					break;
+				tmpMesh = new TmpMesh();
+				type = MESH;
+				break;
+			case SpriteSource:
+				if (GetNextWord(contents) != "{")
+					break;
+				tmpSpriteSrc = new TmpSpriteSrc();
+				type = SPRSRC;
+				break;
+			case Transform:
+				tmpTransform = new TmpTransform();
+				type = TRANS;
+				break;
+			case Sprite:
+				tmpSprite = new TmpSprite();
+				type = SPRITE;
+				break;
+			case Animation:
+				tmpAnim = new TmpAnim();
+				type = ANIM;
+				break;
+			case Physics:
+				tmpPhys = new TmpPhys();
+				type = PHYS;
+				break;
+			case Collider:
+				tmpColl = new TmpColl();
+				type = COLL;
+				break;
+			case Behavior:
+				tmpBehavior = new TmpBehavior();
+				type = BEHAV;
+				break;
+			case Platform:
+				tmpPlatform = new TmpPlatform();
+				type = PLAT;
+			case OpBr:
+				depth++;
+				break;
+			case ClBr:
+				switch (depth)
 				{
-				case TRANS:
-					tmpGO->Transform = tmpTransform;
+				case 1:
+					activeParent = p1;
+					activeChild = p2;
+					break;
+				case 2:
+					activeParent = p2;
+					activeChild = p3;
+					break;
+				}
+
+				switch (activeParent)
+				{
+				case GO:
+					switch (activeChild)
+					{
+					case TRANS:
+						tmpGO->Transform = tmpTransform;
+						break;
+					case SPRITE:
+						tmpGO->Sprite = tmpSprite;
+						break;
+					case ANIM:
+						tmpGO->Animation = tmpAnim;
+						break;
+					case PHYS:
+						tmpGO->Physics = tmpPhys;
+						break;
+					case COLL:
+						tmpGO->Collider = tmpColl;
+						break;
+					case BEHAV:
+						tmpGO->Behavior = tmpBehavior;
+						break;
+					}
+					break;
+				case PLAT:
+					switch (activeChild)
+					{
+					case TRANS:
+						tmpPlatform->Transform = tmpTransform;
+						break;
+					}
 					break;
 				case SPRITE:
-					tmpGO->Sprite = tmpSprite;
-					break;
-				case ANIM:
-					tmpGO->Animation = tmpAnim;
-					break;
-				case PHYS:
-					tmpGO->Physics = tmpPhys;
-					break;
-				case COLL:
-					tmpGO->Collider = tmpColl;
-					break;
-				case BEHAV:
-					tmpGO->Behavior = tmpBehavior;
+					switch (activeChild)
+					{
+					case MESH:
+						tmpSprite->Mesh = tmpMesh;
+						break;
+					case SPRSRC:
+						tmpSprite->SpriteSource = tmpSpriteSrc;
+						break;
+					}
 					break;
 				}
-				break;
-			case PLAT:
-				switch (activeChild)
+				depth--;
+
+				if (depth == 0)
 				{
-				case TRANS:
-					tmpPlatform->Transform = tmpTransform;
-					break;
+					Base* activeObj = nullptr;
+
+					switch (activeParent)
+					{
+					case GO:
+						activeObj = tmpGO;
+						break;
+					case PLAT:
+						activeObj = tmpPlatform;
+						break;
+					case SPRITE:
+						activeObj = tmpSprite;
+						break;
+					case MESH:
+						activeObj = tmpMesh;
+						break;
+					case SPRSRC:
+						activeObj = tmpSpriteSrc;
+						break;
+					case TRANS:
+						activeObj = tmpTransform;
+					}
+
+					if (activeObj->Name == "")
+						activeObj->Name = "default";
+
+					objs[activeObj->Name] = activeObj;
+
+					tmpAnim = nullptr;
+					tmpBehavior = nullptr;
+					tmpColl = nullptr;
+					tmpGO = nullptr;
+					tmpMesh = nullptr;
+					tmpPhys = nullptr;
+					tmpPlatform = nullptr;
+					tmpSprite = nullptr;
+					tmpSpriteSrc = nullptr;
+					tmpTransform = nullptr;
 				}
 				break;
-			case SPRITE:
-				switch (activeChild)
+			default:
+				switch (depth - 1)
 				{
+				case 0:
+					activeParent = p1;
+					break;
+				case 1:
+					activeParent = p2;
+					break;
+				case 2:
+					activeParent = p3;
+					break;
+				}
+
+				switch (activeParent)
+				{
+				case GO:
+					break;
 				case MESH:
-					tmpSprite->Mesh = tmpMesh;
+					// Parse the word & store.
+					switch (strs.at(word))
+					{
+					case HalfSize:
+						sstream << GetNextWord(contents, true) << ' ' << GetNextWord(contents, true);
+						sstream >> x >> y;
+
+						tmpMesh->HalfSize = Vector2D(x, y);
+						break;
+					case UV:
+						sstream << GetNextWord(contents, true) << ' ' << GetNextWord(contents, true);
+						sstream >> x >> y;
+
+						tmpMesh->UV = Vector2D(x, y);
+						break;
+					}
 					break;
 				case SPRSRC:
-					tmpSprite->SpriteSource = tmpSpriteSrc;
+					// Parse the word & store.
+					switch (strs.at(word))
+					{
+					case Size:
+						sstream << GetNextWord(contents, true) << ' ' << GetNextWord(contents, true);
+						sstream >> x >> y;
+
+						tmpSpriteSrc->Rows = (int)x;
+						tmpSpriteSrc->Cols = (int)y;
+						break;
+					case Texture:
+						tmpSpriteSrc->Texture = GetNextWord(contents, true);
+						break;
+					}
+					break;
+				case TRANS:
+					// Parse the word & store.
+					switch (strs.at(word))
+					{
+					case Translation:
+						sstream << GetNextWord(contents, true) << ' ' << GetNextWord(contents, true);
+						sstream >> x >> y;
+
+						tmpTransform->Translation = Vector2D(x, y);
+						break;
+					case Scale:
+						sstream << GetNextWord(contents, true) << ' ' << GetNextWord(contents, true);
+						sstream >> x >> y;
+
+						tmpTransform->Scale = Vector2D(x, y);
+						break;
+					case Rotation:
+						sstream << GetNextWord(contents, true);
+						sstream >> x;
+
+						tmpTransform->Rotation = x;
+						break;
+					case UIElement:
+						sstream << GetNextWord(contents, true);
+						bool uiel;
+						sstream >> uiel;
+
+						tmpTransform->UIElement = uiel;
+						break;
+					}
+					break;
+				case SPRITE:
+					// Parse the word & store.
+					switch (strs.at(word))
+					{
+					case Alpha:
+						sstream << GetNextWord(contents, true);
+						float a;
+						sstream >> a;
+
+						tmpSprite->Alpha = a;
+						break;
+					case Frame:
+						sstream << GetNextWord(contents, true);
+						int frame;
+						sstream >> frame;
+
+						tmpSprite->Frame = frame;
+						break;
+					case Mesh:
+						tmpSprite->Mesh = (TmpMesh*)objs[GetNextWord(contents, true)];
+						break;
+					case SpriteSource:
+						tmpSprite->SpriteSource = (TmpSpriteSrc*)objs[GetNextWord(contents, true)];
+						break;
+					}
+					break;
+				case ANIM:
+					// Parse the word & store.
+					switch (strs.at(word))
+					{
+					case FrameDur:
+						sstream << GetNextWord(contents, true);
+						float frameDur;
+						sstream >> frameDur;
+
+						tmpAnim->FrameDuration = frameDur;
+						break;
+					case IsLooping:
+						sstream << GetNextWord(contents, true);
+						bool loop;
+						sstream >> loop;
+
+						tmpAnim->IsLooping = loop;
+						break;
+					}
+					break;
+				case PHYS:
+					tmpPhys->Name = "GOPhysics";
+					break;
+				case COLL:
+					tmpColl->Name = "GOCollider";
+					break;
+				case BEHAV:
+					tmpBehavior->Type = word;
 					break;
 				}
 				break;
 			}
-
-			depth--;
-			break;
-		default:
-			switch (depth)
+		} 
+		else
+		{
+			switch (depth - 1)
 			{
 			case 0:
 				activeParent = p1;
@@ -258,7 +451,8 @@ void LevelManager::Update(float dt)
 				// Is this a name?
 				if (word.find_first_of("\"") != std::string::npos)
 				{
-					tmpGO->Name = word.substr(1, word.length() - 1);
+					word.erase(std::remove(word.begin(), word.end(), '\"'), word.end());
+					tmpGO->Name = word;
 					break;
 				}
 				break;
@@ -266,24 +460,8 @@ void LevelManager::Update(float dt)
 				// Is this a name?
 				if (word.find_first_of("\"") != std::string::npos)
 				{
-					tmpMesh->Name = word.substr(1, word.length() - 1);
-					break;
-				}
-
-				// Parse the word & store.
-				switch (str2int(word.c_str()))
-				{
-				case str2int("HalfSize"):
-					sstream << GetNextWord(contents, true) << ' ' << GetNextWord(contents, true);
-					sstream >> x >> y;
-
-					tmpMesh->HalfSize = Vector2D(x, y);
-					break;
-				case str2int("UV"):
-					sstream << GetNextWord(contents, true) << ' ' << GetNextWord(contents, true);
-					sstream >> x >> y;
-
-					tmpMesh->UV = Vector2D(x, y);
+					word.erase(std::remove(word.begin(), word.end(), '\"'), word.end());
+					tmpMesh->Name = word;
 					break;
 				}
 				break;
@@ -291,121 +469,32 @@ void LevelManager::Update(float dt)
 				// Is this a name?
 				if (word.find_first_of("\"") != std::string::npos)
 				{
-					tmpSpriteSrc->Name = word.substr(1, word.length() - 1);
-					break;
-				}
-
-				// Parse the word & store.
-				switch (str2int(word.c_str()))
-				{
-				case str2int("Size"):
-					sstream << GetNextWord(contents, true) << ' ' << GetNextWord(contents, true);
-					sstream >> x >> y;
-
-					tmpSpriteSrc->Rows = x;
-					tmpSpriteSrc->Cols = x;
-					break;
-				case str2int("Texture"):
-					tmpSpriteSrc->Texture = GetNextWord(contents, true);
+					word.erase(std::remove(word.begin(), word.end(), '\"'), word.end());
+					tmpSpriteSrc->Name = word;
 					break;
 				}
 				break;
 			case TRANS:
-				// Parse the word & store.
-				switch (str2int(word.c_str()))
-				{
-				case str2int("Translation"):
-					sstream << GetNextWord(contents, true) << ' ' << GetNextWord(contents, true);
-					float x, y;
-					sstream >> x >> y;
-
-					tmpTransform->Translation = Vector2D(x, y);
-					break;
-				case str2int("Scale"):
-					sstream << GetNextWord(contents, true) << ' ' << GetNextWord(contents, true);
-					sstream >> x >> y;
-
-					tmpTransform->Scale = Vector2D(x, y);
-					break;
-				case str2int("Rotation"):
-					sstream << GetNextWord(contents, true);
-					sstream >> x;
-
-					tmpTransform->Rotation = x;
-					break;
-				case str2int("UIElement"):
-					sstream << GetNextWord(contents, true);
-					bool uiel;
-					sstream >> uiel;
-
-					tmpTransform->UIElement = uiel;
-					break;
-				}
 				break;
 			case SPRITE:
 				// Is this a name?
 				if (word.find_first_of("\"") != std::string::npos)
 				{
-					tmpSprite->Name = word.substr(1, word.length() - 1);
-					break;
-				}
-
-				// Parse the word & store.
-				switch (str2int(word.c_str()))
-				{
-				case str2int("Alpha"):
-					sstream << GetNextWord(contents, true);
-					float a;
-					sstream >> a;
-
-					tmpSprite->Alpha = a;
-					break;
-				case str2int("Frame"):
-					sstream << GetNextWord(contents, true);
-					int frame;
-					sstream >> frame;
-
-					tmpSprite->Frame = frame;
-					break;
-				case str2int("Mesh"):
-					tmpSprite->Mesh = (TmpMesh*)objs[GetNextWord(contents, true)];
-					break;
-				case str2int("SpriteSoure"):
-					tmpSprite->SpriteSource = (TmpSpriteSrc*)objs[GetNextWord(contents, true)];
+					word.erase(std::remove(word.begin(), word.end(), '\"'), word.end());
+					tmpSprite->Name = word;
 					break;
 				}
 				break;
 			case ANIM:
-				// Parse the word & store.
-				switch (str2int(word.c_str()))
-				{
-				case str2int("FrameDur"):
-					sstream << GetNextWord(contents, true);
-					float frameDur;
-					sstream >> frameDur;
-
-					tmpAnim->FrameDuration = frameDur;
-					break;
-				case str2int("IsLooping"):
-					sstream << GetNextWord(contents, true);
-					bool loop;
-					sstream >> loop;
-
-					tmpAnim->IsLooping = loop;
-					break;
-				}
 				break;
 			case PHYS:
-				tmpPhys->Name = "GOPhysics";
 				break;
 			case COLL:
-				tmpColl->Name = "GOCollider";
 				break;
 			case BEHAV:
 				tmpBehavior->Type = word;
 				break;
 			}
-			break;
 		}
 
 		if (type != NONE)
@@ -424,7 +513,8 @@ void LevelManager::Update(float dt)
 			}
 		}
 		break;
-	case FIND_CHILDREN:
+	case CREATE:
+		for ()
 		break;
 	case FINISHED:
 		stateNext = IDLE;
@@ -443,13 +533,12 @@ std::string LevelManager::GetNextWord(std::string& str, bool remove)
 	std::string retVal = str.substr(0, str.find_first_of(" "));
 
 	if (remove)
-		str = str.substr(str.find_first_of(" ") + 1, str.end);
+		str = str.substr(str.find_first_of(" ") + 1, str.size());
 
 	return retVal;
 }
 
-constexpr unsigned int LevelManager::str2int(const char* str, int h = 0)
+void LevelManager::Debug()
 {
-	return !str[h] ? 5381 : (str2int(str, h + 1) * 33) ^ str[h];
-}
 
+}

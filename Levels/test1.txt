@@ -1,0 +1,45 @@
+Mesh
+{
+	"TestMesh"
+	HalfSize(0.5,0.5)
+	UV(0.25,0.25)
+}
+
+SpriteSource
+{
+	"TestSpriteSource"
+	Size(2,4)
+	Texture(Assets\test.png)
+}
+
+GameObject
+{
+	"TestGameObject"
+	Transform
+	{
+		Translation(0,0)
+		Scale(1.5,2)
+		Rotation(10)
+		UIElement(false)
+	}
+	Sprite
+	{
+		"TestSprite"
+		Alpha(1.0)
+		Frame(1)
+		Mesh(TestMesh)
+		SpriteSource
+		{
+			Size(1,2)
+			Texture(Assets\test.png)
+		}
+	}
+	Animation
+	{
+		FrameDur(0.5)
+		IsLooping(true)
+	}
+	Physics
+	Collider
+	Behavior(Player)
+}

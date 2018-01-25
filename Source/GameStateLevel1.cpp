@@ -24,6 +24,7 @@
 #include "PlatformManager.h"
 #include "BehaviorPlayer.h"
 #include "BehaviorGoal.h"
+#include "LevelManager.h"
 
 //------------------------------------------------------------------------------
 // Private Consts:
@@ -182,11 +183,11 @@ void GameStateLevel1::Init()
 	Trace::GetInstance().GetStream() << "Stub: Init" << std::endl;
 
 	CreateMonkey();
-	CreateCheckpoint();
+	//CreateCheckpoint();
 	//CreateGoal();
 
 	GameObjectManager::GetInstance().Add(*gameObjectMonkey);
-	GameObjectManager::GetInstance().Add(*gameObjectCheckpoint);
+	//GameObjectManager::GetInstance().Add(*gameObjectCheckpoint);
 	//GameObjectManager::GetInstance().Add(*gameObjectGoal);
 
 	AEGfxSetBackgroundColor(1, 1, 1);
@@ -216,6 +217,8 @@ void GameStateLevel1::Init()
 	transform.SetTranslation({ 0, -130 });
 	transform.SetScale({ 400, 20 });
 	PlatformManager::AddPlatform(transform);
+
+	LevelManager::GetInstance().Load("test1");
 }
 
 void GameStateLevel1::MoveMonkey()

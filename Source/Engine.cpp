@@ -18,6 +18,7 @@
 #include "Random.h"
 #include "SoundManager.h"
 #include "IOController.h"
+#include "LevelManager.h"
 
 //------------------------------------------------------------------------------
 // Private Structures:
@@ -55,6 +56,8 @@ void Engine::Init()
 
 	GameObjectManager::GetInstance().Init();
 
+	LevelManager::GetInstance().Init();
+
 	SoundManager::GetInstance().Init();
 
 	RandomInit();
@@ -81,6 +84,8 @@ void Engine::Update(float dt)
 
 	// Update the sound manager.
 	SoundManager::GetInstance().Update(dt);
+
+	LevelManager::GetInstance().Update(dt);
 
 	// Complete the draw process for the current game loop.
 	System::GetInstance().Draw();

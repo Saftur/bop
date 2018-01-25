@@ -6,43 +6,45 @@
 #include "GameObjectManager.h"
 #include "PlatformManager.h"
 
-enum LM_Mode { IDLE = 0, LOAD = 1, FIND_CHILDREN = 2, CREATE = 3, FINISHED = 4 };
+enum LM_Mode { IDLE = 0, LOAD = 1, CREATE = 2, FINISHED = 3 };
 enum LM_Parent { NONE = 0, GO = 1, TRANS = 2, SPRITE = 3, ANIM = 4, SPRSRC = 5, MESH = 6, PHYS = 7, COLL = 8, BEHAV = 9, PLAT = 10 };
-enum LM_Type { GameObject, OpBr, ClBr, Mesh, HalfSize, UV, SpriteSource, Size, Texture, Translation, Scale, Rotation, UIElement, Sprite, Alpha, Frame, Animation, FrameDur, IsLooping, Physics,
-				Collider, Behavior, Platform, Transform, Jump, Speed, Vector };
 
 class LevelManager
 {
 public:
-	static void Init();
-	static void Load(const char* levelName);
-	static void Update(float dt);
-	static void Unload();
+	void Init();
+	void Load(const char* levelName);
+	void Update(float dt);
+	void Shutdown();
 	static LevelManager& GetInstance();
-	static bool IsLoaded();
+	bool IsLoaded();
+	void Debug();
 
 	~LevelManager();
 private:
+	enum LM_Type {
+		GameObject, OpBr, ClBr, Mesh, HalfSize, UV, SpriteSource, Size, Texture, Translation, Scale, Rotation, UIElement, Sprite, Alpha, Frame, Animation, FrameDur, IsLooping, Physics,
+		Collider, Behavior, Platform, Transform, Jump, Speed, Vector
+	};
+
 	LevelManager();
 
-	static std::string GetNextWord(std::string& str, bool remove = false);
-	static constexpr unsigned int str2int(const char* str, int h = 0);
+	std::string GetNextWord(std::string& str, bool remove = false);
 
 	struct Base
 	{
 		virtual ~Base() {}
+		std::string Name;
 	};
 
 	struct TmpMesh : public Base
 	{
-		std::string Name;
 		Vector2D HalfSize;
 		Vector2D UV;
 	};
 
 	struct TmpSpriteSrc : public Base
 	{
-		std::string Name;
 		int Rows;
 		int Cols;
 		std::string Texture;
@@ -58,7 +60,6 @@ private:
 
 	struct TmpSprite : public Base
 	{
-		std::string Name;
 		float Alpha;
 		int Frame;
 		TmpMesh* Mesh;
@@ -73,12 +74,10 @@ private:
 
 	struct TmpPhys : public Base
 	{
-		std::string Name;
 	};
 
 	struct TmpColl : public Base
 	{
-		std::string Name;
 	};
 
 	struct TmpBehavior : public Base
@@ -88,7 +87,6 @@ private:
 
 	struct TmpGO : public Base
 	{
-		std::string Name;
 		TmpTransform* Transform;
 		TmpSprite* Sprite;
 		TmpAnim* Animation;
@@ -97,7 +95,7 @@ private:
 		TmpBehavior* Behavior;
 	};
 
-	struct TmpPlatform
+	struct TmpPlatform : public Base
 	{
 		TmpTransform* Transform;
 		float JumpHeight;
@@ -107,25 +105,23 @@ private:
 	static LM_Mode stateCurr;
 	static LM_Mode stateNext;
 
-	static std::string contents;
+	std::string contents;
 
-	static TmpMesh* tmpMesh;
-	static TmpSpriteSrc* tmpSpriteSrc;
-	static TmpAnim* tmpAnim;
-	static TmpBehavior* tmpBehavior;
-	static TmpColl* tmpColl;
-	static TmpGO* tmpGO;
-	static TmpPhys* tmpPhys;
-	static TmpPlatform* tmpPlatform;
-	static TmpSprite* tmpSprite;
-	static TmpTransform* tmpTransform;
+	TmpMesh* tmpMesh;
+	TmpSpriteSrc* tmpSpriteSrc;
+	TmpAnim* tmpAnim;
+	TmpBehavior* tmpBehavior;
+	TmpColl* tmpColl;
+	TmpGO* tmpGO;
+	TmpPhys* tmpPhys;
+	TmpPlatform* tmpPlatform;
+	TmpSprite* tmpSprite;
+	TmpTransform* tmpTransform;
 
-	static LM_Parent p1;
-	static LM_Parent p2;
-	static LM_Parent p3;
+	static LM_Parent p1, p2, p3;
 
-	static std::map<std::string, Base*> objs;
-	static std::map<std::string, LM_Type> strs;
+	std::map<std::string, Base*> objs;
+	std::map<std::string, LM_Type> strs;
 
 	static int depth;
 };
