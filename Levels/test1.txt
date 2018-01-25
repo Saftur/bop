@@ -43,3 +43,14 @@ GameObject
 	Collider
 	Behavior(Player)
 }
+
+Platform
+{
+	Transform
+	{
+		Translation(0.5,0.5)
+		Scale(1,1)
+	}
+	Jump(1.0)
+	Speed(1.0)
+}

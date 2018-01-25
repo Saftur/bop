@@ -6,8 +6,12 @@
 
 #include "GameObjectManager.h"
 #include "Trace.h"
+#include "Mesh.h"
+#include "AEEngine.h"
 
 #include "LevelManager.h"
+
+// TODO: Clean up the code in here.
 
 LM_Mode LevelManager::stateCurr = IDLE;
 LM_Mode LevelManager::stateNext = IDLE;
@@ -15,6 +19,12 @@ LM_Parent LevelManager::p1 = NONE;
 LM_Parent LevelManager::p2 = NONE;
 LM_Parent LevelManager::p3 = NONE;
 int LevelManager::depth = 0;
+int LevelManager::id = 0;
+
+int LevelManager::genID()
+{
+	return id++;
+}
 
 LevelManager& LevelManager::GetInstance()
 {
@@ -142,46 +152,56 @@ void LevelManager::Update(float dt)
 			{
 			case GameObject:
 				tmpGO = new TmpGO();
+				tmpGO->ID = genID();
 				type = GO;
 				break;
 			case Mesh:
 				if (GetNextWord(contents) != "{")
 					break;
 				tmpMesh = new TmpMesh();
+				tmpMesh->ID = genID();
 				type = MESH;
 				break;
 			case SpriteSource:
 				if (GetNextWord(contents) != "{")
 					break;
 				tmpSpriteSrc = new TmpSpriteSrc();
+				tmpSpriteSrc->ID = genID();
 				type = SPRSRC;
 				break;
 			case Transform:
 				tmpTransform = new TmpTransform();
+				tmpTransform->ID = genID();
 				type = TRANS;
 				break;
 			case Sprite:
 				tmpSprite = new TmpSprite();
+				tmpSprite->ID = genID();
 				type = SPRITE;
 				break;
 			case Animation:
 				tmpAnim = new TmpAnim();
+				tmpAnim->ID = genID();
 				type = ANIM;
 				break;
 			case Physics:
 				tmpPhys = new TmpPhys();
+				tmpPhys->ID = genID();
 				type = PHYS;
 				break;
 			case Collider:
 				tmpColl = new TmpColl();
+				tmpColl->ID = genID();
 				type = COLL;
 				break;
 			case Behavior:
 				tmpBehavior = new TmpBehavior();
+				tmpBehavior->ID = genID();
 				type = BEHAV;
 				break;
 			case Platform:
 				tmpPlatform = new TmpPlatform();
+				tmpPlatform->ID = genID();
 				type = PLAT;
 			case OpBr:
 				depth++;
@@ -271,10 +291,7 @@ void LevelManager::Update(float dt)
 						activeObj = tmpTransform;
 					}
 
-					if (activeObj->Name == "")
-						activeObj->Name = "default";
-
-					objs[activeObj->Name] = activeObj;
+					objs[activeObj->ID] = activeObj;
 
 					tmpAnim = nullptr;
 					tmpBehavior = nullptr;
@@ -390,10 +407,10 @@ void LevelManager::Update(float dt)
 						tmpSprite->Frame = frame;
 						break;
 					case Mesh:
-						tmpSprite->Mesh = (TmpMesh*)objs[GetNextWord(contents, true)];
+						tmpSprite->Mesh = (TmpMesh*)objs[getObjByName(GetNextWord(contents, true))];
 						break;
 					case SpriteSource:
-						tmpSprite->SpriteSource = (TmpSpriteSrc*)objs[GetNextWord(contents, true)];
+						tmpSprite->SpriteSource = (TmpSpriteSrc*)objs[getObjByName(GetNextWord(contents, true))];
 						break;
 					}
 					break;
@@ -418,10 +435,8 @@ void LevelManager::Update(float dt)
 					}
 					break;
 				case PHYS:
-					tmpPhys->Name = "GOPhysics";
 					break;
 				case COLL:
-					tmpColl->Name = "GOCollider";
 					break;
 				case BEHAV:
 					tmpBehavior->Type = word;
@@ -514,7 +529,86 @@ void LevelManager::Update(float dt)
 		}
 		break;
 	case CREATE:
-		for ()
+		for (int i = 0; i < id; i++)
+		{
+			__pragma(warning(push))
+			__pragma(warning(disable:4127))
+			if (sizeof(objs[i]) == sizeof(TmpSpriteSrc))
+			{
+				// Initialize all components first.
+				textures[i] = AEGfxTextureLoad(((TmpSpriteSrc*)objs[i])->Texture.c_str());
+
+				// Create the object & initialize.
+				spriteSources[i] = new ::SpriteSource(((TmpSpriteSrc*)objs[i])->Cols, ((TmpSpriteSrc*)objs[i])->Rows, textures[i]);
+			}
+			else if (sizeof(objs[i]) == sizeof(TmpMesh))
+			{
+				// Create the object & initialize.
+				verts[i] = MeshCreateQuad(((TmpMesh*)objs[i])->HalfSize.X(), ((TmpMesh*)objs[i])->HalfSize.Y(), ((TmpMesh*)objs[i])->UV.X(), ((TmpMesh*)objs[i])->UV.Y(), ((TmpMesh*)objs[i])->Name.c_str());
+			}
+			if (sizeof(objs[i]) == sizeof(TmpGO))
+			{
+				::GameObject* go = new ::GameObject(((TmpGO*)objs[i])->Name.c_str());
+
+				if (((TmpGO*)objs[i])->Sprite)
+				{
+					if (!verts.at(((TmpGO*)objs[i])->Sprite->Mesh->ID))
+						verts[i] = MeshCreateQuad(((TmpGO*)objs[i])->Sprite->Mesh->HalfSize.X(), ((TmpGO*)objs[i])->Sprite->Mesh->HalfSize.Y(), ((TmpGO*)objs[i])->Sprite->Mesh->UV.X(), ((TmpGO*)objs[i])->Sprite->Mesh->UV.Y(), ((TmpGO*)objs[i])->Sprite->Mesh->Name.c_str());
+
+					if (!textures.at(((TmpGO*)objs[i])->Sprite->SpriteSource->ID))
+					{
+						textures[i] = AEGfxTextureLoad(((TmpGO*)objs[i])->Sprite->SpriteSource->Texture.c_str());
+						spriteSources[i] = new ::SpriteSource(((TmpGO*)objs[i])->Sprite->SpriteSource->Cols, ((TmpGO*)objs[i])->Sprite->SpriteSource->Rows, textures[i]);
+					}
+
+					::Sprite* spr = new ::Sprite(((TmpGO*)objs[i])->Sprite->Name.c_str());
+					go->SetSprite(*spr);
+				}
+
+				if (((TmpGO*)objs[i])->Animation)
+				{
+					::Animation* an = new ::Animation(go->GetSprite());
+					go->SetAnimation(*an);
+				}
+
+				if (((TmpGO*)objs[i])->Transform)
+				{
+					::Transform* tr = new ::Transform(((TmpGO*)objs[i])->Transform->Translation.X(), ((TmpGO*)objs[i])->Transform->Translation.Y());
+					go->SetTransform(*tr);
+				}
+
+				if (((TmpGO*)objs[i])->Collider)
+				{
+					::Collider* co = new ::Collider(*go);
+					go->SetCollider(*co);
+				}
+
+				if (((TmpGO*)objs[i])->Physics)
+				{
+					::Physics* ph = new ::Physics();
+					go->SetPhysics(*ph);
+				}
+
+				// TODO: Behaviors?
+
+				// Register with GameObjectManager.
+				GameObjectManager::GetInstance().Add(*go);
+			}
+			else if (sizeof(objs[i]) == sizeof(TmpPlatform))
+			{
+				// Initialize all components first.
+				::Transform* tr = new ::Transform(((TmpPlatform*)objs[i])->Transform->Translation.X(), ((TmpPlatform*)objs[i])->Transform->Translation.Y());
+
+				// TODO: std::vectors
+				
+				// Create the object & initialize.
+				PlatformManager::AddPlatform(*tr, ((TmpPlatform*)objs[i])->JumpHeight, ((TmpPlatform*)objs[i])->Speed);
+			}
+			__pragma(warning(pop))
+		}
+
+
+
 		break;
 	case FINISHED:
 		stateNext = IDLE;
@@ -523,6 +617,46 @@ void LevelManager::Update(float dt)
 
 	if (stateCurr != stateNext)
 		stateCurr = stateNext;
+}
+
+int LevelManager::getObjByName(std::string name)
+{
+	for (int i = 0; i < id; i++)
+	{
+		__pragma(warning(push))
+		__pragma(warning(disable:4127))
+		if (sizeof(objs[i]) == sizeof(TmpGO))
+		{
+			if (((TmpGO*)objs[i])->Name == name)
+			{
+				return objs[i]->ID;
+			}
+		}
+		else if (sizeof(objs[i]) == sizeof(TmpMesh))
+		{
+			if (((TmpMesh*)objs[i])->Name == name)
+			{
+				return objs[i]->ID;
+			}
+		}
+		else if (sizeof(objs[i]) == sizeof(TmpSprite))
+		{
+			if (((TmpSprite*)objs[i])->Name == name)
+			{
+				return objs[i]->ID;
+			}
+		}
+		else if (sizeof(objs[i]) == sizeof(TmpSpriteSrc))
+		{
+			if (((TmpSpriteSrc*)objs[i])->Name == name)
+			{
+				return objs[i]->ID;
+			}
+		}
+		__pragma(warning(pop))
+	}
+
+	return -1;
 }
 
 std::string LevelManager::GetNextWord(std::string& str, bool remove)

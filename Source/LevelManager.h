@@ -4,10 +4,13 @@
 
 #include "stdafx.h"
 #include "GameObjectManager.h"
+#include "SpriteSource.h"
 #include "PlatformManager.h"
 
 enum LM_Mode { IDLE = 0, LOAD = 1, CREATE = 2, FINISHED = 3 };
 enum LM_Parent { NONE = 0, GO = 1, TRANS = 2, SPRITE = 3, ANIM = 4, SPRSRC = 5, MESH = 6, PHYS = 7, COLL = 8, BEHAV = 9, PLAT = 10 };
+
+// TODO: Clean up the code in here.
 
 class LevelManager
 {
@@ -30,21 +33,25 @@ private:
 	LevelManager();
 
 	std::string GetNextWord(std::string& str, bool remove = false);
+	int genID();
+	int getObjByName(std::string name);
 
 	struct Base
 	{
 		virtual ~Base() {}
-		std::string Name;
+		int ID;
 	};
 
 	struct TmpMesh : public Base
 	{
+		std::string Name;
 		Vector2D HalfSize;
 		Vector2D UV;
 	};
 
 	struct TmpSpriteSrc : public Base
 	{
+		std::string Name;
 		int Rows;
 		int Cols;
 		std::string Texture;
@@ -60,6 +67,7 @@ private:
 
 	struct TmpSprite : public Base
 	{
+		std::string Name;
 		float Alpha;
 		int Frame;
 		TmpMesh* Mesh;
@@ -87,6 +95,7 @@ private:
 
 	struct TmpGO : public Base
 	{
+		std::string Name;
 		TmpTransform* Transform;
 		TmpSprite* Sprite;
 		TmpAnim* Animation;
@@ -120,8 +129,12 @@ private:
 
 	static LM_Parent p1, p2, p3;
 
-	std::map<std::string, Base*> objs;
+	std::map<int, Base*> objs;
+	std::map<int, AEGfxTexture*> textures;
+	std::map<int, ::SpriteSource*> spriteSources;
+	std::map<int, AEGfxVertexList*> verts;
 	std::map<std::string, LM_Type> strs;
 
 	static int depth;
+	static int id;
 };
