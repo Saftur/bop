@@ -9,7 +9,7 @@ SpriteSource
 {
 	"TestSpriteSource"
 	Size(2,4)
-	Texture(Assets\test.png)
+	Texture(Assets\player.png)
 }
 
 GameObject
@@ -48,7 +48,7 @@ Platform
 {
 	Transform
 	{
-		Translation(0.5,0.5)
+		Translation(100,100)
 		Scale(1,1)
 	}
 	Jump(1.0)

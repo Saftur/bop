@@ -153,6 +153,7 @@ void LevelManager::Update(float dt)
 			case GameObject:
 				tmpGO = new TmpGO();
 				tmpGO->ID = genID();
+				tmpGO->type = "GO";
 				type = GO;
 				break;
 			case Mesh:
@@ -160,6 +161,7 @@ void LevelManager::Update(float dt)
 					break;
 				tmpMesh = new TmpMesh();
 				tmpMesh->ID = genID();
+				tmpMesh->type = "ME";
 				type = MESH;
 				break;
 			case SpriteSource:
@@ -167,42 +169,51 @@ void LevelManager::Update(float dt)
 					break;
 				tmpSpriteSrc = new TmpSpriteSrc();
 				tmpSpriteSrc->ID = genID();
+				tmpSpriteSrc->type = "SS";
 				type = SPRSRC;
 				break;
 			case Transform:
 				tmpTransform = new TmpTransform();
 				tmpTransform->ID = genID();
+				tmpTransform->type = "TR";
 				type = TRANS;
 				break;
 			case Sprite:
 				tmpSprite = new TmpSprite();
 				tmpSprite->ID = genID();
+				tmpSprite->type = "SP";
 				type = SPRITE;
 				break;
 			case Animation:
 				tmpAnim = new TmpAnim();
 				tmpAnim->ID = genID();
+				tmpAnim->type = "AN";
 				type = ANIM;
 				break;
 			case Physics:
 				tmpPhys = new TmpPhys();
 				tmpPhys->ID = genID();
+				tmpPhys->type = "PH";
 				type = PHYS;
 				break;
 			case Collider:
 				tmpColl = new TmpColl();
 				tmpColl->ID = genID();
+				tmpColl->type = "CO";
 				type = COLL;
 				break;
 			case Behavior:
 				tmpBehavior = new TmpBehavior();
 				tmpBehavior->ID = genID();
+				tmpBehavior->type = "BE";
 				type = BEHAV;
 				break;
 			case Platform:
 				tmpPlatform = new TmpPlatform();
 				tmpPlatform->ID = genID();
+				tmpPlatform->type = "PL";
 				type = PLAT;
+				break;
 			case OpBr:
 				depth++;
 				break;
@@ -441,6 +452,23 @@ void LevelManager::Update(float dt)
 				case BEHAV:
 					tmpBehavior->Type = word;
 					break;
+				case PLAT:
+					switch (strs.at(word))
+					{
+					case Jump:
+						sstream << GetNextWord(contents, true);
+						sstream >> x;
+
+						tmpPlatform->JumpHeight = x;
+						break;
+					case Speed:
+						sstream << GetNextWord(contents, true);
+						sstream >> x;
+
+						tmpPlatform->Speed = x;
+						break;
+					}
+					break;
 				}
 				break;
 			}
@@ -531,9 +559,9 @@ void LevelManager::Update(float dt)
 	case CREATE:
 		for (int i = 0; i < id; i++)
 		{
-			__pragma(warning(push))
-			__pragma(warning(disable:4127))
-			if (sizeof(objs[i]) == sizeof(TmpSpriteSrc))
+			if (!objs[i])
+				continue;
+			if (objs[i]->type == "SS")
 			{
 				// Initialize all components first.
 				textures[i] = AEGfxTextureLoad(((TmpSpriteSrc*)objs[i])->Texture.c_str());
@@ -541,12 +569,12 @@ void LevelManager::Update(float dt)
 				// Create the object & initialize.
 				spriteSources[i] = new ::SpriteSource(((TmpSpriteSrc*)objs[i])->Cols, ((TmpSpriteSrc*)objs[i])->Rows, textures[i]);
 			}
-			else if (sizeof(objs[i]) == sizeof(TmpMesh))
+			else if (objs[i]->type == "ME")
 			{
 				// Create the object & initialize.
 				verts[i] = MeshCreateQuad(((TmpMesh*)objs[i])->HalfSize.X(), ((TmpMesh*)objs[i])->HalfSize.Y(), ((TmpMesh*)objs[i])->UV.X(), ((TmpMesh*)objs[i])->UV.Y(), ((TmpMesh*)objs[i])->Name.c_str());
 			}
-			if (sizeof(objs[i]) == sizeof(TmpGO))
+			if (objs[i]->type == "GO")
 			{
 				::GameObject* go = new ::GameObject(((TmpGO*)objs[i])->Name.c_str());
 
@@ -594,7 +622,7 @@ void LevelManager::Update(float dt)
 				// Register with GameObjectManager.
 				GameObjectManager::GetInstance().Add(*go);
 			}
-			else if (sizeof(objs[i]) == sizeof(TmpPlatform))
+			else if (objs[i]->type == "PL")
 			{
 				// Initialize all components first.
 				::Transform* tr = new ::Transform(((TmpPlatform*)objs[i])->Transform->Translation.X(), ((TmpPlatform*)objs[i])->Transform->Translation.Y());
@@ -604,10 +632,9 @@ void LevelManager::Update(float dt)
 				// Create the object & initialize.
 				PlatformManager::AddPlatform(*tr, ((TmpPlatform*)objs[i])->JumpHeight, ((TmpPlatform*)objs[i])->Speed);
 			}
-			__pragma(warning(pop))
 		}
 
-
+		stateNext = FINISHED;
 
 		break;
 	case FINISHED:

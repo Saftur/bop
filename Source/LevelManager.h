@@ -40,6 +40,7 @@ private:
 	{
 		virtual ~Base() {}
 		int ID;
+		std::string type = "";
 	};
 
 	struct TmpMesh : public Base
