@@ -46,7 +46,8 @@
     <ClInclude Include="Source\GameStateStub.h" />
     <ClInclude Include="Source\GameStateTable.h" />
     <ClInclude Include="source\IOController.h" />
-    <ClInclude Include="source\LevelManager.h" />
+    <ClInclude Include="Source\LevelManager.h" />
+    <ClInclude Include="source\LevelManager_depricated.h" />
     <ClInclude Include="Source\Matrix2D.h" />
     <ClInclude Include="Source\Mesh.h" />
     <ClInclude Include="Source\Physics.h" />
@@ -93,7 +94,8 @@
     <ClCompile Include="Source\GameStateStub.cpp" />
     <ClCompile Include="Source\GameStateTable.cpp" />
     <ClCompile Include="source\IOController.cpp" />
-    <ClCompile Include="source\LevelManager.cpp" />
+    <ClCompile Include="Source\LevelManager.cpp" />
+    <ClCompile Include="source\LevelManager_depricated.cpp" />
     <ClCompile Include="Source\Main.cpp" />
     <ClCompile Include="Source\Matrix2D.cpp" />
     <ClCompile Include="Source\Mesh.cpp" />

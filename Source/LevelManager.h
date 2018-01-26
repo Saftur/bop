@@ -1,142 +1,89 @@
 #pragma once
-
 #include <map>
+#include <sstream>
 
-#include "stdafx.h"
-#include "GameObjectManager.h"
-#include "SpriteSource.h"
-#include "PlatformManager.h"
+using namespace std;
 
-enum LM_Mode { IDLE = 0, LOAD = 1, CREATE = 2, FINISHED = 3 };
-enum LM_Parent { NONE = 0, GO = 1, TRANS = 2, SPRITE = 3, ANIM = 4, SPRSRC = 5, MESH = 6, PHYS = 7, COLL = 8, BEHAV = 9, PLAT = 10 };
-
-// TODO: Clean up the code in here.
+enum LM_STATE { IDLE, LOAD, CREATE, DONE };
 
 class LevelManager
 {
 public:
 	void Init();
-	void Load(const char* levelName);
 	void Update(float dt);
 	void Shutdown();
+
+	// Get the LevelManager's current state.
+	static LM_STATE GetState();
+	// Returns the LevelManager's progress as a float ranging from 0-100.
+	static float GetProgress();
+
+	// Returns the current LevelManager instance.
 	static LevelManager& GetInstance();
-	bool IsLoaded();
-	void Debug();
-
-	~LevelManager();
 private:
-	enum LM_Type {
-		GameObject, OpBr, ClBr, Mesh, HalfSize, UV, SpriteSource, Size, Texture, Translation, Scale, Rotation, UIElement, Sprite, Alpha, Frame, Animation, FrameDur, IsLooping, Physics,
-		Collider, Behavior, Platform, Transform, Jump, Speed, Vector
-	};
-
+	// Private constructor to prevent instantiation.
 	LevelManager();
 
-	std::string GetNextWord(std::string& str, bool remove = false);
-	int genID();
-	int getObjByName(std::string name);
+	// Enum containing all of the keywords to check for.
+	enum LM_KEYWORD { MESH, HALFSIZE, UV, SPRITESOURCE, SIZE, TEXTURE, GAMEOBJECT, TRANSFORM, TRANSLATION, SCALE, ROTATION, UIELEMENT, SPRITE, ALPHA,
+					  FRAME, ANIMATION, FRAMEDUR, ISLOOPING, PHYSICS, COLLIDER, BEHAVIOR, OPBR, CLBR };
 
-	struct Base
+	// Classes & structs
+	struct BaseClass
 	{
-		virtual ~Base() {}
-		int ID;
-		std::string type = "";
+		string typeStr;
 	};
 
-	struct TmpMesh : public Base
+	// Templates
+	template<string type, class T1 = nullptr, class T2 = nullptr, class T3 = nullptr, class T4 = nullptr, class T5 = nullptr, class T6 = nullptr, class T7 = nullptr, typename base = BaseClass>
+	struct Container : base
 	{
-		std::string Name;
-		Vector2D HalfSize;
-		Vector2D UV;
+		T1 t1;
+		T2 t2;
+		T3 t3;
+		T4 t4;
+		T5 t5;
+		T6 t6;
+		T7 t7;
+
+		typeStr = type;
 	};
 
-	struct TmpSpriteSrc : public Base
-	{
-		std::string Name;
-		int Rows;
-		int Cols;
-		std::string Texture;
-	};
+	// Gets the next word from the given string. If the word is empty (ie, a space),
+	// removes and returns the next word instead.
+	// Params:
+	//   remove - should we remove the word from the string? Default is true.
+	// Returns:
+	//   The found word.
+	string getNextWord(bool remove = true);
 
-	struct TmpTransform : public Base
-	{
-		Vector2D Translation;
-		Vector2D Scale;
-		float Rotation;
-		bool UIElement;
-	};
+	// Loads the next object into memory.
+	void loadObject();
 
-	struct TmpSprite : public Base
-	{
-		std::string Name;
-		float Alpha;
-		int Frame;
-		TmpMesh* Mesh;
-		TmpSpriteSrc* SpriteSource;
-	};
+	// Finds the entity most probable to be the parent.
+	// Params:
+	//   typeStr - what type of container to look for.
+	// Returns:
+	//   A pointer to the found object, or nullptr if none was found.
+	BaseClass* getParentByID(string typeStr);
 
-	struct TmpAnim : public Base
-	{
-		float FrameDuration;
-		bool IsLooping;
-	};
+	// Data
+	string contents;
+	map<string, LM_KEYWORD> keywords;
+	map<int, BaseClass*> containers;
+	map<string, int> names;
 
-	struct TmpPhys : public Base
-	{
-	};
+	int id = 0;
 
-	struct TmpColl : public Base
-	{
-	};
-
-	struct TmpBehavior : public Base
-	{
-		std::string Type;
-	};
-
-	struct TmpGO : public Base
-	{
-		std::string Name;
-		TmpTransform* Transform;
-		TmpSprite* Sprite;
-		TmpAnim* Animation;
-		TmpPhys* Physics;
-		TmpColl* Collider;
-		TmpBehavior* Behavior;
-	};
-
-	struct TmpPlatform : public Base
-	{
-		TmpTransform* Transform;
-		float JumpHeight;
-		float Speed;
-	};
-
-	static LM_Mode stateCurr;
-	static LM_Mode stateNext;
-
-	std::string contents;
-
-	TmpMesh* tmpMesh;
-	TmpSpriteSrc* tmpSpriteSrc;
-	TmpAnim* tmpAnim;
-	TmpBehavior* tmpBehavior;
-	TmpColl* tmpColl;
-	TmpGO* tmpGO;
-	TmpPhys* tmpPhys;
-	TmpPlatform* tmpPlatform;
-	TmpSprite* tmpSprite;
-	TmpTransform* tmpTransform;
-
-	static LM_Parent p1, p2, p3;
-
-	std::map<int, Base*> objs;
-	std::map<int, AEGfxTexture*> textures;
-	std::map<int, ::SpriteSource*> spriteSources;
-	std::map<int, AEGfxVertexList*> verts;
-	std::map<std::string, LM_Type> strs;
-	std::map<int, ::GameObject*> gos;
-
-	static int depth;
-	static int id;
+	// Typedefs
+	typedef Container<"Mesh", string, Vector2D, Vector2D> MeshContainer;
+	typedef Container<"SpriteSource", string, Vector2D, string> SpriteSourceContainer;
+	typedef Container<"Transform", Vector2D, Vector2D, float, bool> TransformContainer;
+	typedef Container<"Sprite", string, float, int, MeshContainer*, SpriteSourceContainer*> SpriteContainer;
+	typedef Container<"Animation", float, bool> AnimationContainer;
+	typedef Container<"Physics"> PhysicsContainer;
+	typedef Container<"Collider"> ColliderContainer;
+	typedef Container<"Behavior", string> BehaviorContainer;
+	typedef Container<"GameObject", string, TransformContainer*, SpriteContainer*, AnimationContainer*, PhysicsContainer*, ColliderContainer*, BehaviorContainer*> GameObjectContainer;
 };
+

@@ -178,7 +178,10 @@
     <ClCompile Include="Source\BehaviorGoal.cpp">
       <Filter>Game\Behaviors</Filter>
     </ClCompile>
-    <ClCompile Include="source\LevelManager.cpp">
+    <ClCompile Include="source\LevelManager_depricated.cpp">
+      <Filter>Engine\I/O</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\LevelManager.cpp">
       <Filter>Engine\I/O</Filter>
     </ClCompile>
   </ItemGroup>
@@ -340,7 +343,10 @@
     <ClInclude Include="Source\BehaviorGoal.h">
       <Filter>Game\Behaviors</Filter>
     </ClInclude>
-    <ClInclude Include="source\LevelManager.h">
+    <ClInclude Include="source\LevelManager_depricated.h">
+      <Filter>Engine\I/O</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\LevelManager.h">
       <Filter>Engine\I/O</Filter>
     </ClInclude>
   </ItemGroup>
