@@ -135,6 +135,7 @@ private:
 	std::map<int, ::SpriteSource*> spriteSources;
 	std::map<int, AEGfxVertexList*> verts;
 	std::map<std::string, LM_Type> strs;
+	std::map<int, ::GameObject*> gos;
 
 	static int depth;
 	static int id;

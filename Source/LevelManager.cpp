@@ -574,53 +574,40 @@ void LevelManager::Update(float dt)
 				// Create the object & initialize.
 				verts[i] = MeshCreateQuad(((TmpMesh*)objs[i])->HalfSize.X(), ((TmpMesh*)objs[i])->HalfSize.Y(), ((TmpMesh*)objs[i])->UV.X(), ((TmpMesh*)objs[i])->UV.Y(), ((TmpMesh*)objs[i])->Name.c_str());
 			}
-			if (objs[i]->type == "GO")
+			else if (objs[i]->type == "GO")
 			{
 				::GameObject* go = new ::GameObject(((TmpGO*)objs[i])->Name.c_str());
 
-				if (((TmpGO*)objs[i])->Sprite)
+				if (!verts.at(((TmpGO*)objs[i])->Sprite->Mesh->ID))
+					verts[i] = MeshCreateQuad(((TmpGO*)objs[i])->Sprite->Mesh->HalfSize.X(), ((TmpGO*)objs[i])->Sprite->Mesh->HalfSize.Y(), ((TmpGO*)objs[i])->Sprite->Mesh->UV.X(), ((TmpGO*)objs[i])->Sprite->Mesh->UV.Y(), ((TmpGO*)objs[i])->Sprite->Mesh->Name.c_str());
+
+				if (!textures.at(((TmpGO*)objs[i])->Sprite->SpriteSource->ID))
 				{
-					if (!verts.at(((TmpGO*)objs[i])->Sprite->Mesh->ID))
-						verts[i] = MeshCreateQuad(((TmpGO*)objs[i])->Sprite->Mesh->HalfSize.X(), ((TmpGO*)objs[i])->Sprite->Mesh->HalfSize.Y(), ((TmpGO*)objs[i])->Sprite->Mesh->UV.X(), ((TmpGO*)objs[i])->Sprite->Mesh->UV.Y(), ((TmpGO*)objs[i])->Sprite->Mesh->Name.c_str());
-
-					if (!textures.at(((TmpGO*)objs[i])->Sprite->SpriteSource->ID))
-					{
-						textures[i] = AEGfxTextureLoad(((TmpGO*)objs[i])->Sprite->SpriteSource->Texture.c_str());
-						spriteSources[i] = new ::SpriteSource(((TmpGO*)objs[i])->Sprite->SpriteSource->Cols, ((TmpGO*)objs[i])->Sprite->SpriteSource->Rows, textures[i]);
-					}
-
-					::Sprite* spr = new ::Sprite(((TmpGO*)objs[i])->Sprite->Name.c_str());
-					go->SetSprite(*spr);
+					textures[i] = AEGfxTextureLoad(((TmpGO*)objs[i])->Sprite->SpriteSource->Texture.c_str());
+					spriteSources[i] = new ::SpriteSource(((TmpGO*)objs[i])->Sprite->SpriteSource->Cols, ((TmpGO*)objs[i])->Sprite->SpriteSource->Rows, textures[i]);
 				}
 
-				if (((TmpGO*)objs[i])->Animation)
-				{
-					::Animation* an = new ::Animation(go->GetSprite());
-					go->SetAnimation(*an);
-				}
+				::Sprite* spr = new ::Sprite(((TmpGO*)objs[i])->Sprite->Name.c_str());
+				go->SetSprite(*spr);
 
-				if (((TmpGO*)objs[i])->Transform)
-				{
-					::Transform* tr = new ::Transform(((TmpGO*)objs[i])->Transform->Translation.X(), ((TmpGO*)objs[i])->Transform->Translation.Y());
-					go->SetTransform(*tr);
-				}
+				::Animation* an = new ::Animation(go->GetSprite());
+				go->SetAnimation(*an);
 
-				if (((TmpGO*)objs[i])->Collider)
-				{
-					::Collider* co = new ::Collider(*go);
-					go->SetCollider(*co);
-				}
+				::Transform* tr = new ::Transform(((TmpGO*)objs[i])->Transform->Translation.X(), ((TmpGO*)objs[i])->Transform->Translation.Y());
+				go->SetTransform(*tr);
 
-				if (((TmpGO*)objs[i])->Physics)
-				{
-					::Physics* ph = new ::Physics();
-					go->SetPhysics(*ph);
-				}
+				::Collider* co = new ::Collider(*go);
+				go->SetCollider(*co);
+
+				::Physics* ph = new ::Physics();
+				go->SetPhysics(*ph);
 
 				// TODO: Behaviors?
 
 				// Register with GameObjectManager.
 				GameObjectManager::GetInstance().Add(*go);
+
+				gos[i] = go;
 			}
 			else if (objs[i]->type == "PL")
 			{
