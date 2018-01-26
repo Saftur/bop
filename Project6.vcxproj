@@ -42,6 +42,7 @@
     <ClInclude Include="Source\GameStateDemo.h" />
     <ClInclude Include="Source\GameStateLevel1.h" />
     <ClInclude Include="Source\GameStateLevel2.h" />
+    <ClInclude Include="Source\GameStateLoading.h" />
     <ClInclude Include="Source\GameStateManager.h" />
     <ClInclude Include="Source\GameStateStub.h" />
     <ClInclude Include="Source\GameStateTable.h" />
@@ -90,6 +91,7 @@
     <ClCompile Include="Source\GameStateDemo.cpp" />
     <ClCompile Include="Source\GameStateLevel1.cpp" />
     <ClCompile Include="Source\GameStateLevel2.cpp" />
+    <ClCompile Include="Source\GameStateLoading.cpp" />
     <ClCompile Include="Source\GameStateManager.cpp" />
     <ClCompile Include="Source\GameStateStub.cpp" />
     <ClCompile Include="Source\GameStateTable.cpp" />

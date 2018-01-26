@@ -184,6 +184,9 @@
     <ClCompile Include="Source\LevelManager.cpp">
       <Filter>Engine\I/O</Filter>
     </ClCompile>
+    <ClCompile Include="Source\GameStateLoading.cpp">
+      <Filter>Game\GameStates</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\GameStateStub.h">
@@ -348,6 +351,9 @@
     </ClInclude>
     <ClInclude Include="Source\LevelManager.h">
       <Filter>Engine\I/O</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\GameStateLoading.h">
+      <Filter>Game\GameStates</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

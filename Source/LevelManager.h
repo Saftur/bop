@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include <sstream>
+#include "Vector2D.h"
 
 using namespace std;
 
@@ -14,9 +15,9 @@ public:
 	void Shutdown();
 
 	// Get the LevelManager's current state.
-	static LM_STATE GetState();
+	LM_STATE GetState();
 	// Returns the LevelManager's progress as a float ranging from 0-100.
-	static float GetProgress();
+	float GetProgress();
 
 	// Returns the current LevelManager instance.
 	static LevelManager& GetInstance();
@@ -25,23 +26,25 @@ public:
 	// Params:
 	//   name - the name of the level file, excluding file extension.
 	//   dir - the directory to search in. Default is root\Levels.
-	static void LoadLevel(string name, string dir = "Levels\\");
+	void LoadLevel(string name, string dir = "Levels\\");
+
+	~LevelManager();
 private:
 	// Private constructor to prevent instantiation.
 	LevelManager();
 
 	// Enum containing all of the keywords to check for.
-	enum LM_KEYWORD { MESH, HALFSIZE, UV, SPRITESOURCE, SIZE, TEXTURE, GAMEOBJECT, TRANSFORM, TRANSLATION, SCALE, ROTATION, UIELEMENT, SPRITE, ALPHA,
-					  FRAME, ANIMATION, FRAMEDUR, ISLOOPING, PHYSICS, COLLIDER, BEHAVIOR, OPBR, CLBR };
+	enum LM_KEYWORD { MESH = 0, HALFSIZE = 1, UV = 2, SPRITESOURCE = 3, SIZE = 4, TEXTURE = 5, GAMEOBJECT = 6, TRANSFORM = 7, TRANSLATION = 8, SCALE = 9, ROTATION = 10, UIELEMENT = 11, SPRITE = 12, ALPHA = 13,
+					  FRAME = 14, ANIMATION = 15, FRAMEDUR = 16, ISLOOPING = 17, PHYSICS = 18, COLLIDER = 19, BEHAVIOR = 20, OPBR = 21, CLBR = 22 };
 
 	// Classes & structs
 	struct BaseClass
 	{
-		string typeStr;
+		LM_KEYWORD typeStr;
 	};
 
 	// Templates
-	template<string type, class T1 = nullptr, class T2 = nullptr, class T3 = nullptr, class T4 = nullptr, class T5 = nullptr, class T6 = nullptr, class T7 = nullptr, typename base = BaseClass>
+	template<LM_KEYWORD type, typename T1 = nullptr_t, typename T2 = nullptr_t, typename T3 = nullptr_t, typename T4 = nullptr_t, typename T5 = nullptr_t, typename T6 = nullptr_t, typename T7 = nullptr_t, typename base = BaseClass>
 	struct Container : base
 	{
 		T1 t1;
@@ -51,8 +54,6 @@ private:
 		T5 t5;
 		T6 t6;
 		T7 t7;
-
-		typeStr = type;
 	};
 
 	// Gets the next word from the given string. If the word is empty (ie, a space),
@@ -71,10 +72,11 @@ private:
 	//   typeStr - what type of container to look for.
 	// Returns:
 	//   A pointer to the found object, or nullptr if none was found.
-	BaseClass* getParentByID(string typeStr);
+	BaseClass* getParentByID(LM_KEYWORD type);
+
+	void RemoveChar(string& str, const char toFind, bool doSpaces = true);
 
 	// Data
-	string contents;
 	map<string, LM_KEYWORD> keywords;
 	map<int, BaseClass*> containers;
 	map<string, int> names;
@@ -82,17 +84,17 @@ private:
 	static int id;
 	static LM_STATE stateCurr, stateNext;
 	static unsigned int objCount, objsLoaded;
-	static std::string words;
+	std::string words;
 
 	// Typedefs
-	typedef Container<"Mesh", string, Vector2D, Vector2D> MeshContainer;
-	typedef Container<"SpriteSource", string, Vector2D, string> SpriteSourceContainer;
-	typedef Container<"Transform", Vector2D, Vector2D, float, bool> TransformContainer;
-	typedef Container<"Sprite", string, float, int, MeshContainer*, SpriteSourceContainer*> SpriteContainer;
-	typedef Container<"Animation", float, bool> AnimationContainer;
-	typedef Container<"Physics"> PhysicsContainer;
-	typedef Container<"Collider"> ColliderContainer;
-	typedef Container<"Behavior", string> BehaviorContainer;
-	typedef Container<"GameObject", string, TransformContainer*, SpriteContainer*, AnimationContainer*, PhysicsContainer*, ColliderContainer*, BehaviorContainer*> GameObjectContainer;
+	typedef Container<MESH, string, Vector2D, Vector2D> MeshContainer;
+	typedef Container<SPRITESOURCE, string, Vector2D, string> SpriteSourceContainer;
+	typedef Container<TRANSFORM, Vector2D, Vector2D, float, bool> TransformContainer;
+	typedef Container<SPRITE, string, float, int, MeshContainer*, SpriteSourceContainer*> SpriteContainer;
+	typedef Container<ANIMATION, float, bool> AnimationContainer;
+	typedef Container<PHYSICS> PhysicsContainer;
+	typedef Container<COLLIDER> ColliderContainer;
+	typedef Container<BEHAVIOR, string> BehaviorContainer;
+	typedef Container<GAMEOBJECT, string, TransformContainer*, SpriteContainer*, AnimationContainer*, PhysicsContainer*, ColliderContainer*, BehaviorContainer*> GameObjectContainer;
 };
 

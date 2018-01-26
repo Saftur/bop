@@ -180,7 +180,7 @@ GameObject* GameStateLevel1::CreateCheckpoint()
 // Initialize the memory associated with the Stub game state.
 void GameStateLevel1::Init()
 {
-	LevelManager::GetInstance().Load("test1");
+	LevelManager::GetInstance().LoadLevel("test1");
 	Trace::GetInstance().GetStream() << "Stub: Init" << std::endl;
 
 	CreateMonkey();
