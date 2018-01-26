@@ -1,9 +1,105 @@
 #include "stdafx.h"
+
+#include <fstream>
+#include <algorithm>
+
 #include "LevelManager.h"
 #include "GameObjectManager.h"
 #include "Vector2D.h"
 
 using namespace std;
+
+int LevelManager::id = 0;
+LM_STATE LevelManager::stateCurr = IDLE;
+LM_STATE LevelManager::stateNext = IDLE;
+unsigned int LevelManager::objCount = 0;
+unsigned int LevelManager::objsLoaded = 0;
+
+void LevelManager::Init()
+{
+	// TODO: Initialize maps and stuff
+}
+
+void LevelManager::Update(float dt)
+{
+	UNREFERENCED_PARAMETER(dt);
+
+	switch (stateCurr)
+	{
+		case IDLE:
+			break;
+		case LOAD:
+			// Load an object every cycle during the update phase.
+			loadObject();
+			break;
+		case CREATE:
+			break;
+	}
+
+	// Update state.
+	if (stateCurr != stateNext)
+	{
+		stateCurr = stateNext;
+	}
+}
+
+void LevelManager::Shutdown()
+{
+	// TODO: Free up memory and stuff.
+}
+
+void LevelManager::LoadLevel(string name, string dir = "Levels\\")
+{
+	// Create the path string and open the file.
+	string path = dir + name + ".lvl";
+	ifstream file(path);
+
+	std::string line;
+	int depth = 0;
+
+	// Iterate through the file line by line.
+	while (std::getline(file, line))
+	{
+		// Exclude comments.
+		if (line.find_first_of("//", 0, 2))
+			continue;
+
+		// Update depth.
+		if (line.find_first_of('{'))
+			depth++;
+		else if (line.find_first_of('}'))
+			depth--;
+
+		// Update objCount.
+		if (depth == 0)
+		{
+			objCount++;
+		}
+
+		// Remove undesirable characters from the line.
+		replace(line.begin(), line.end(), '(', ' ');
+		replace(line.begin(), line.end(), ')', ' ');
+		replace(line.begin(), line.end(), ',', ' ');
+		line.erase(remove(line.begin(), line.end(), '\t'), line.end());
+
+		// Store line in words.
+		line += ' ';
+		words += line;
+	}
+
+	int index = 0;
+
+	// Correct for double spaces.
+	while (words.find_first_of(' ', index) != string::npos)
+	{
+		if (words.at(words.find_first_of(' ', index) + 1) == ' ')
+			words = words.substr(0, words.find_first_of(' ', index)) + words.substr(words.find_first_of(' ', index) + 2);
+		index = words.find_first_of(' ', index) + 1;
+	}
+
+	// Update state.
+	stateNext = LOAD;
+}
 
 void LevelManager::loadObject()
 {
@@ -60,6 +156,7 @@ void LevelManager::loadObject()
 				if (getNextWord(false) == "{")
 				{
 					containers[id++] = new SpriteSourceContainer();
+					if (depth == 0) objsLoaded++;
 					goto start;
 				}
 				else
@@ -82,10 +179,12 @@ void LevelManager::loadObject()
 				break;
 			case GAMEOBJECT:
 				containers[id++] = new GameObjectContainer();
+				if (depth == 0) objsLoaded++;
 				goto start;
 				break;
 			case TRANSFORM:
 				containers[id++] = new TransformContainer();
+				if (depth == 0) objsLoaded++;
 				goto start;
 				break;
 			case TRANSLATION:

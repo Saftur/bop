@@ -20,6 +20,12 @@ public:
 
 	// Returns the current LevelManager instance.
 	static LevelManager& GetInstance();
+
+	// Loads a level.
+	// Params:
+	//   name - the name of the level file, excluding file extension.
+	//   dir - the directory to search in. Default is root\Levels.
+	static void LoadLevel(string name, string dir = "Levels\\");
 private:
 	// Private constructor to prevent instantiation.
 	LevelManager();
@@ -73,7 +79,10 @@ private:
 	map<int, BaseClass*> containers;
 	map<string, int> names;
 
-	int id = 0;
+	static int id;
+	static LM_STATE stateCurr, stateNext;
+	static unsigned int objCount, objsLoaded;
+	static std::string words;
 
 	// Typedefs
 	typedef Container<"Mesh", string, Vector2D, Vector2D> MeshContainer;
