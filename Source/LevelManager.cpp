@@ -145,27 +145,23 @@ void LevelManager::loadObject()
 			{
 				((MeshContainer*)containers[id - 1])->t1 = RemoveChar(word, '\"', false);
 			}
-			if (containers[id - 1]->typeStr == MESH)
+			if (containers[id - 1]->typeStr == SPRITESOURCE)
 			{
-				((Container*)containers[id - 1])->t1 = RemoveChar(word, '\"', false);
+				((SpriteSourceContainer*)containers[id - 1])->t1 = RemoveChar(word, '\"', false);
 			}
-			if (containers[id - 1]->typeStr == MESH)
+			if (containers[id - 1]->typeStr == GAMEOBJECT)
 			{
-				((Container*)containers[id - 1])->t1 = RemoveChar(word, '\"', false);
+				((GameObjectContainer*)containers[id - 1])->t1 = RemoveChar(word, '\"', false);
 			}
-			if (containers[id - 1]->typeStr == MESH)
+			if (containers[id - 1]->typeStr == SPRITE)
 			{
-				((Container*)containers[id - 1])->t1 = RemoveChar(word, '\"', false);
-			}
-			if (containers[id - 1]->typeStr == MESH)
-			{
-				((Container*)containers[id - 1])->t1 = RemoveChar(word, '\"', false);
+				((SpriteContainer*)containers[id - 1])->t1 = RemoveChar(word, '\"', false);
 			}
 		}
 
 		// If this word is nonsense, return.
-		if (!keywords[word])
-			return;
+		//if (!keywords[word])
+			//return;
 
 		stringstream ss;
 		float x, y;
@@ -339,12 +335,14 @@ string LevelManager::getNextWord(bool remove)
 	return retVal;
 }
 
-void LevelManager::RemoveChar(string& str, const char toFind, bool doSpaces)
+string LevelManager::RemoveChar(string& str, const char toFind, bool doSpaces)
 {
 	replace(str.begin(), str.end(), toFind, ' ');
 
 	if (!doSpaces)
 		str.erase(remove(str.begin(), str.end(), ' '), str.end());
+
+	return str;
 }
 
 LevelManager& LevelManager::GetInstance()

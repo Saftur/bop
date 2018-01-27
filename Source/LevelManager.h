@@ -74,7 +74,7 @@ private:
 	//   A pointer to the found object, or nullptr if none was found.
 	BaseClass* getParentByID(LM_KEYWORD type);
 
-	void RemoveChar(string& str, const char toFind, bool doSpaces = true);
+	string RemoveChar(string& str, const char toFind, bool doSpaces = true);
 
 	// Data
 	map<string, LM_KEYWORD> keywords;
