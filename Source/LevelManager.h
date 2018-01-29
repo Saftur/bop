@@ -40,7 +40,6 @@ private:
 	// Classes & structs
 	struct BaseClass
 	{
-		LM_KEYWORD typeStr;
 	};
 
 	// Templates
@@ -54,7 +53,12 @@ private:
 		T5 t5;
 		T6 t6;
 		T7 t7;
+
+		LM_KEYWORD typeStr;
 	};
+
+	template<LM_KEYWORD type, typename T1 = nullptr_t, typename T2 = nullptr_t, typename T3 = nullptr_t, typename T4 = nullptr_t, typename T5 = nullptr_t, typename T6 = nullptr_t, typename T7 = nullptr_t, typename base = BaseClass>
+	LM_KEYWORD Container<type, T1, T2, T3, T4, T5, T6, T7>::typeStr = MESH;
 
 	// Gets the next word from the given string. If the word is empty (ie, a space),
 	// removes and returns the next word instead.

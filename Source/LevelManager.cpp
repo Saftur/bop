@@ -115,10 +115,10 @@ void LevelManager::LoadLevel(string name, string dir)
 	int index = 0;
 
 	// Correct for double spaces.
-	while (words.find_first_of(' ', index) != string::npos)
+	while (words.find_first_of(' ', index) != string::npos && index + 2 < words.length())
 	{
 		if (words.at(words.find_first_of(' ', index) + 1) == ' ')
-			words = words.substr(0, words.find_first_of(' ', index)) + words.substr(words.find_first_of(' ', index) + 2);
+			words = words.substr(0, words.find_first_of(' ', index)) + words.substr(words.find_first_of(' ', index) + 1);
 		index = words.find_first_of(' ', index) + 1;
 	}
 
@@ -145,23 +145,25 @@ void LevelManager::loadObject()
 			{
 				((MeshContainer*)containers[id - 1])->t1 = RemoveChar(word, '\"', false);
 			}
-			if (containers[id - 1]->typeStr == SPRITESOURCE)
+			else if (containers[id - 1]->typeStr == SPRITESOURCE)
 			{
 				((SpriteSourceContainer*)containers[id - 1])->t1 = RemoveChar(word, '\"', false);
 			}
-			if (containers[id - 1]->typeStr == GAMEOBJECT)
+			else if (containers[id - 1]->typeStr == GAMEOBJECT)
 			{
 				((GameObjectContainer*)containers[id - 1])->t1 = RemoveChar(word, '\"', false);
 			}
-			if (containers[id - 1]->typeStr == SPRITE)
+			else if (containers[id - 1]->typeStr == SPRITE)
 			{
 				((SpriteContainer*)containers[id - 1])->t1 = RemoveChar(word, '\"', false);
 			}
+
+			continue;
 		}
 
 		// If this word is nonsense, return.
 		//if (!keywords[word])
-			//return;
+		//	continue;
 
 		stringstream ss;
 		float x, y;
@@ -173,6 +175,10 @@ void LevelManager::loadObject()
 				if (getNextWord(false) == "{")
 				{
 					containers[id++] = new MeshContainer();
+
+					if (depth == 0) objsLoaded++;
+					else ((SpriteContainer*)getParentByID(SPRITE))->t4 = ((MeshContainer*)containers[id - 1]);
+
 					goto start;
 				}
 				else
@@ -200,7 +206,10 @@ void LevelManager::loadObject()
 				if (getNextWord(false) == "{")
 				{
 					containers[id++] = new SpriteSourceContainer();
+
 					if (depth == 0) objsLoaded++;
+					else ((SpriteContainer*)getParentByID(SPRITE))->t5 = ((SpriteSourceContainer*)containers[id - 1]);
+
 					goto start;
 				}
 				else
@@ -223,14 +232,19 @@ void LevelManager::loadObject()
 				break;
 			case GAMEOBJECT:
 				containers[id++] = new GameObjectContainer();
+				
 				if (depth == 0) objsLoaded++;
+
 				goto start;
-				break;
 			case TRANSFORM:
 				containers[id++] = new TransformContainer();
-				if (depth == 0) objsLoaded++;
+
+				// NOTE: This is going to potentially break things going forward.
+				// At the time this code was written, the only entities which could have a Transform were GameObjects.
+				// If this is no longer the case, this code MUST be updated.
+				((GameObjectContainer*)getParentByID(TRANSFORM))->t2 = ((TransformContainer*)containers[id - 1]);
+
 				goto start;
-				break;
 			case TRANSLATION:
 				ss << getNextWord() << " " << getNextWord();
 				ss >> x >> y;
@@ -273,8 +287,13 @@ void LevelManager::loadObject()
 				break;
 			case ANIMATION:
 				containers[id++] = new AnimationContainer();
+
+				// NOTE: This is going to potentially break things going forward.
+				// At the time this code was written, the only entities which could have an Animation were GameObjects.
+				// If this is no longer the case, this code MUST be updated.
+				((GameObjectContainer*)getParentByID(GAMEOBJECT))->t4 = ((AnimationContainer*)containers[id - 1]);
+
 				goto start;
-				break;
 			case FRAMEDUR:
 				ss << getNextWord();
 				ss >> x;
@@ -289,16 +308,31 @@ void LevelManager::loadObject()
 				break;
 			case PHYSICS:
 				containers[id++] = new PhysicsContainer();
+
+				// NOTE: This is going to potentially break things going forward.
+				// At the time this code was written, the only entities which could have a Physics were GameObjects.
+				// If this is no longer the case, this code MUST be updated.
+				((GameObjectContainer*)getParentByID(GAMEOBJECT))->t5 = ((PhysicsContainer*)containers[id - 1]);
+
 				goto start;
-				break;
 			case COLLIDER:
 				containers[id++] = new ColliderContainer();
+
+				// NOTE: This is going to potentially break things going forward.
+				// At the time this code was written, the only entities which could have a Collider were GameObjects.
+				// If this is no longer the case, this code MUST be updated.
+				((GameObjectContainer*)getParentByID(GAMEOBJECT))->t6 = ((ColliderContainer*)containers[id - 1]);
+
 				goto start;
-				break;
 			case BEHAVIOR:
 				containers[id++] = new BehaviorContainer();
+
+				// NOTE: This is going to potentially break things going forward.
+				// At the time this code was written, the only entities which could have a Behavior were GameObjects.
+				// If this is no longer the case, this code MUST be updated.
+				((GameObjectContainer*)getParentByID(GAMEOBJECT))->t7 = ((BehaviorContainer*)containers[id - 1]);
+
 				goto start;
-				break;
 			case OPBR:
 				depth++;
 				break;
